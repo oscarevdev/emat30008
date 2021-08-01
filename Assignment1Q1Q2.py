@@ -2,6 +2,7 @@ from scipy.integrate import odeint
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 
 def euler_step(tn, xn, h, fn):
@@ -20,7 +21,7 @@ def euler_step(tn, xn, h, fn):
     return x
 
 
-def RK4(tn, xn, h, fn):
+def RK4_step(tn, xn, h, fn):
     k1 = fn(tn, xn)
     k2 = fn(tn + h/2, xn + h*(k1/2))
     k3 = fn(tn + h/2, xn + h*(k2/2))
@@ -59,9 +60,28 @@ def q1sys(t,x):
 
 # test FE one-step
 x0 = 1
-h = 0.5
+h = 0.005
+h_euler = 1e-8
+h_RK4 = 0.5
 
-t=np.arange(0,1,0.01)
-x=solve_ode(t,x0,h, q1sys, method_name=RK4)
-plt.plot(t,x)
+t = np.linspace(0,1,101)
+
+start_time=time.time()
+x_euler = solve_ode(t, x0, h_euler, q1sys, method_name=euler_step)
+print("--- Euler Runtime: %s seconds ---" % (time.time() - start_time))
+start_time=time.time()
+x_RK4 = solve_ode(t, x0, h_RK4, q1sys, method_name=RK4_step)
+print("--- RK4 Runtime: %s seconds ---" % (time.time() - start_time))
+
+sol = odeint(q1sys, x0, t, tfirst=True)
+
+plt.plot(t, abs(sol[:,0]-x_euler), label="Euler: h="+str(h_euler))
+plt.plot(t, abs(sol[:,0]-x_RK4), label="RK4: h="+str(h_RK4))
+# plt.plot(t, x_euler, label="Euler")
+# plt.plot(t, x_RK4, label="RK4")
+# plt.plot(t, sol[:,0], label="odeint")
+plt.legend()
+plt.yscale("log")
+plt.ylabel("Error")
+plt.xlabel("t")
 plt.show()
