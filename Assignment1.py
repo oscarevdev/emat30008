@@ -16,12 +16,17 @@ def euler_step(tn, xn, h, fn):
         x -- state at time tn+h
         f -- time derivative at tn+h
     """
-    x = xn+h*fn(xn, tn)
+    x = xn+h*fn(tn, xn)
     return x
 
 
 def RK4(tn, xn, h, fn):
-
+    k1 = fn(tn, xn)
+    k2 = fn(tn + h/2, xn + h*(k1/2))
+    k3 = fn(tn + h/2, xn + h*(k2/2))
+    k4 = fn(tn + h, xn + h*k3)
+    x = xn + (1/6)*h*(k1+2*k2+2*k3+k4)
+    return x
 
 
 def solve_to(t1,t2,x1,deltat_max,dfdx,method=euler_step):
@@ -47,7 +52,7 @@ def solve_ode(t_vec, x1, deltat, fn, method_name=euler_step):
     return x_vec
 
 
-def q1sys(x,t):
+def q1sys(t,x):
     dxdt = x
     return dxdt
 
