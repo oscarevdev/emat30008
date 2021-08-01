@@ -17,7 +17,6 @@ def euler_step(tn, xn, h, fn):
         x -- state at time tn+h
         f -- time derivative at tn+h
     """
-    print("blah",fn(tn, xn))
     x = xn+h*fn(tn, xn)
     return x
 
@@ -54,43 +53,49 @@ def solve_ode(t_vec, x1, deltat, fn, method_name=euler_step):
     return x_vec
 
 
-def lin_sys(t,x):
-    dxdt = x
+def lotka_volterra(t,x):
+    a = 1
+    d = 0.1
+    b = 0.30
+    dxdt = np.zeros((len(x),))
+    dxdt[0] = x[0]*(1-x[0])-(a*x[0]*x[1])/(d+x[0])
+    dxdt[1] = b*x[1]*(1-x[1]/x[0])
     return dxdt
 
 
-def second_order_sys(t,x):
-    dxdt=np.zeros((len(x),))
-    dxdt[0]=x[1]
-    dxdt[1]=-x[0]
-    return dxdt
+# When b<0.26 there are periodic solutions
+# When b>0.26 there is decay
 
+# WHen b=0.2 and x0=[1,1]: periodic orbit w/ T=20secs (ish)
 
-# test FE one-step
-x0 = np.array((1,0))
+# Phase conditions (dxdt=0) when [x,y]=[0,0], [(-1 pm sqrt(41))/2, -1 pm sqrt(41))/2]
+
+# x0_phase_cond=(-1+(41**0.5))/2
+x0_phase_cond=0
+x0 = np.array((x0_phase_cond,x0_phase_cond))
 print(x0)
 h = 0.5
 
-t = np.linspace(0,10,301)
+t = np.linspace(0,200,3001)
 
 start_time=time.time()
-x_euler = solve_ode(t, x0, h, second_order_sys, method_name=euler_step)
+x_euler = solve_ode(t, x0, h, lotka_volterra, method_name=euler_step)
 print("--- Euler Runtime: %s seconds ---" % (time.time() - start_time))
 
 start_time=time.time()
-x_RK4 = solve_ode(t, x0, h, second_order_sys, method_name=RK4_step)
+x_RK4 = solve_ode(t, x0, h, lotka_volterra, method_name=RK4_step)
 print("--- RK4 Runtime: %s seconds ---" % (time.time() - start_time))
 
-sol = odeint(second_order_sys, x0, t, tfirst=True)
+sol = odeint(lotka_volterra, x0, t, tfirst=True)
 
 # plt.plot(t, abs(sol[:,0]-x_euler), label="Euler: h="+str(h_euler))
 # plt.plot(t, abs(sol[:,0]-x_RK4), label="RK4: h="+str(h_RK4))
-# plt.plot(t, x_euler[:,0], label="Euler")
-# plt.plot(t, x_RK4[:,0], label="RK4")
-# plt.plot(t, sol[:,0], label="odeint")
-plt.plot(x_euler[:,0], x_euler[:,1], label="Euler")
-plt.plot(x_RK4[:,0], x_RK4[:,1], label="RK4")
-plt.plot(sol[:,0], sol[:,1], label="odeint")
+plt.plot(t, x_euler[:,0], label="Euler")
+plt.plot(t, x_RK4[:,0], label="RK4")
+plt.plot(t, sol[:,0], label="odeint")
+# plt.plot(x_euler[:,0], x_euler[:,1], label="Euler")
+# plt.plot(x_RK4[:,0], x_RK4[:,1], label="RK4")
+# plt.plot(sol[:,0], sol[:,1], label="odeint")
 plt.legend()
 # plt.yscale("log")
 # plt.ylabel("Error")
