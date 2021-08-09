@@ -17,9 +17,25 @@ def lotka_volterra(t, x_vec, b):
 
 
 def shooting(u0_tilde, est_T, dudt, args):
+    """
+    Inputs:
+    :param u0_tilde: starting point for shooting (should be near limit cycle)
+    :param est_T: estimated period
+    :param dudt: differential equation in first order form, parameters: (t, u, arguments)
+    :param args: argument values for dudt
+    # Maybe add this in later :param phase_cond: phase condition to allow the period to be calculated
+    Outputs:
+    :return: u_lim  - point on limit cycle
+             period - limit cycle period
+    """
     initial_guess = np.append(u0_tilde, est_T)
-    return root(lambda u0_T: np.append(u0_T[:-1]-solve_ivp(lambda t, u: dudt(t, u, args), (0, u0_T[-1]), u0_T[:-1]).y[:, -1],
-                                       dudt(0, u0_T[:-1], args)[0]), initial_guess)
+    limit_cycle_vals = root(lambda u0_T:
+                            np.append(u0_T[:-1] - solve_ivp(lambda t, u: dudt(t, u, args), (0, u0_T[-1]), u0_T[:-1]).y[:, -1],
+                                      dudt(0, u0_T[:-1], args)[0]), initial_guess)
+    print(limit_cycle_vals)
+    u_lim = limit_cycle_vals.x[:-1]
+    period = limit_cycle_vals.x[-1]
+    return u_lim, period
 
 
 # When b<0.26 there are periodic solutions
@@ -39,7 +55,7 @@ x0=np.array((1,1))
 # plt.ylabel("x")
 # plt.show()
 
-print(shooting(np.array((0.6, 0.3)), 20, lotka_volterra, 0.2))
+print(shooting(x0, 20, lotka_volterra, 0.2))
 
 # PHASE PORTRAITS
 plt.plot(sol.y[0,:], sol.y[1,:])

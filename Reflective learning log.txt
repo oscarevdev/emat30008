@@ -1,0 +1,13 @@
+Key questions you should try to answer in your learning log are as follows.
+
+What did I learn about the mathematical algorithms? I.e., solving boundary value problems, numerical ill-conditioning, etc.
+
+What did I learn about software engineering? How have I progressed in my abilities?
+
+What are the short-term implications of what I've learnt? (When will it be useful?)
+
+What are the long-term implications of what I've learnt? (When will it be useful?)
+
+What would I have done differently if I started the unit over again?
+
+What will I do differently in the future?
