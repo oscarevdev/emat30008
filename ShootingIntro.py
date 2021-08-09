@@ -1,66 +1,25 @@
-from scipy.integrate import odeint
+from scipy.integrate import solve_ivp
+from scipy.optimize import root
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 
 
-def euler_step(tn, xn, h, fn):
-    """
-    takes a single time step
-    Input:
-        tn -- current time
-        xn -- state at time tn
-        h  -- size of time step
-        fn -- time derivative function in form f(x,t)
-    Output:
-        x -- state at time tn+h
-        f -- time derivative at tn+h
-    """
-    x = xn+h*fn(tn, xn)
-    return x
-
-
-def RK4_step(tn, xn, h, fn):
-    k1 = fn(tn, xn)
-    k2 = fn(tn + h/2, xn + h*(k1/2))
-    k3 = fn(tn + h/2, xn + h*(k2/2))
-    k4 = fn(tn + h, xn + h*k3)
-    x = xn + (1/6)*h*(k1+2*k2+2*k3+k4)
-    return x
-
-
-def solve_to(t1,t2,x1,deltat_max,dfdx,method=euler_step):
-    # calculate the number of iterations
-    num_steps = math.ceil((t2-t1)/deltat_max)
-    # initiate iterable vars
-    xn = x1
-    tn = t1
-    h = deltat_max
-    for step in range(0,num_steps):
-        if t2-tn < deltat_max:
-            h = t2-tn
-        xn = method(tn, xn, h, dfdx)
-        tn = tn + h
-    return xn
-
-
-def solve_ode(t_vec, x1, deltat, fn, method_name=euler_step):
-    x_vec = np.zeros((len(t_vec),len(x1)))
-    x_vec[0] = x1
-    for pos in range(1,len(x_vec)):
-        x_vec[pos,:] = solve_to(t_vec[pos-1],t_vec[pos],x_vec[pos-1,:], deltat, fn, method=method_name)
-    return x_vec
-
-
-def lotka_volterra(t,x):
+def lotka_volterra(t, x_vec, b):
     a = 1
     d = 0.1
-    b = 0.30
-    dxdt = np.zeros((len(x),))
-    dxdt[0] = x[0]*(1-x[0])-(a*x[0]*x[1])/(d+x[0])
-    dxdt[1] = b*x[1]*(1-x[1]/x[0])
-    return dxdt
+    x = x_vec[0]
+    y = x_vec[1]
+    dxdt = x*(1-x)-(a*x*y)/(d+x)
+    dydt = b*y*(1-y/x)
+    return np.array((dxdt, dydt))
+
+
+def shooting(u0_tilde, est_T, dudt, args):
+    initial_guess = np.append(u0_tilde, est_T)
+    return root(lambda u0_T: np.append(u0_T[:-1]-solve_ivp(lambda t, u: dudt(t, u, args), (0, u0_T[-1]), u0_T[:-1]).y[:, -1],
+                                       dudt(0, u0_T[:-1], args)[0]), initial_guess)
 
 
 # When b<0.26 there are periodic solutions
@@ -70,36 +29,87 @@ def lotka_volterra(t,x):
 
 # Phase conditions (dxdt=0) when [x,y]=[0,0], [(-1 pm sqrt(41))/2, -1 pm sqrt(41))/2]
 
-# x0_phase_cond=(-1+(41**0.5))/2
-x0_phase_cond=0
-x0 = np.array((x0_phase_cond,x0_phase_cond))
-print(x0)
-h = 0.5
+b_model = 0.2
+x0=np.array((1,1))
 
-t = np.linspace(0,200,3001)
-
-start_time=time.time()
-x_euler = solve_ode(t, x0, h, lotka_volterra, method_name=euler_step)
-print("--- Euler Runtime: %s seconds ---" % (time.time() - start_time))
-
-start_time=time.time()
-x_RK4 = solve_ode(t, x0, h, lotka_volterra, method_name=RK4_step)
-print("--- RK4 Runtime: %s seconds ---" % (time.time() - start_time))
-
-sol = odeint(lotka_volterra, x0, t, tfirst=True)
-
-# plt.plot(t, abs(sol[:,0]-x_euler), label="Euler: h="+str(h_euler))
-# plt.plot(t, abs(sol[:,0]-x_RK4), label="RK4: h="+str(h_RK4))
-plt.plot(t, x_euler[:,0], label="Euler")
-plt.plot(t, x_RK4[:,0], label="RK4")
-plt.plot(t, sol[:,0], label="odeint")
-# plt.plot(x_euler[:,0], x_euler[:,1], label="Euler")
-# plt.plot(x_RK4[:,0], x_RK4[:,1], label="RK4")
-# plt.plot(sol[:,0], sol[:,1], label="odeint")
-plt.legend()
-# plt.yscale("log")
-# plt.ylabel("Error")
+# # plot solution
+# sol = solve_ivp(lambda t, x: lotka_volterra(t,x,b_model), (0,100), x0)
+# plt.plot(sol.t, sol.y[0,:])
 # plt.xlabel("t")
+# plt.ylabel("x")
+# plt.show()
+
+print(shooting(np.array((0.6, 0.3)), 20, lotka_volterra, 0.2))
+
+# PHASE PORTRAITS
+plt.plot(sol.y[0,:], sol.y[1,:])
+
+x0=np.array((0,0))
+sol = solve_ivp(lambda t, x: lotka_volterra(t,x,b_model), (0,100), x0)
+plt.plot(sol.y[0,:], sol.y[1,:])
+
+x0=np.array((0.5,0.5))
+sol = solve_ivp(lambda t, x: lotka_volterra(t,x,b_model), (0,100), x0)
+plt.plot(sol.y[0,:], sol.y[1,:])
+
+x0=np.array((2,2))
+sol = solve_ivp(lambda t, x: lotka_volterra(t,x,b_model), (0,100), x0)
+plt.plot(sol.y[0,:], sol.y[1,:])
+plt.xlabel("x")
+plt.ylabel("y")
 plt.show()
+# ^PHASE PORTRAITS^
 
+# NULLCLINES
+# plot y nullcline
+x_vals = np.linspace(-1, 1.5, 151)
+y_vals = np.zeros(np.size(x_vals))
 
+for (i,x) in enumerate(x_vals):
+    result = root(lambda y: lotka_volterra(math.nan, (x, y), b_model)[0], 1)
+    if result.success:
+        y_vals[i] = result.x
+    else:
+        y_vals[i] = math.nan
+
+plt.plot(x_vals,y_vals)
+
+# plot x nullcline
+x_vals = np.linspace(-1, 1.5, 151)
+y_vals = np.zeros(np.size(x_vals))
+
+for (i,x) in enumerate(x_vals):
+    result = root(lambda y: lotka_volterra(math.nan, (x, y), b_model)[1], 1)
+    if result.success:
+        y_vals[i] = result.x
+    else:
+        y_vals[i] = math.nan
+plt.plot(x_vals,y_vals)
+
+plt.show()
+# ^NULLCLINES^
+
+# FIND EQUILIBRIA
+# estimate equilbria
+est_eq = root(lambda x: lotka_volterra(math.nan, x, b_model), np.array((0.3, 0.3)))
+if est_eq.success:
+    print("Equilibrium at {}".format(est_eq.x))
+else:
+    print("Failed to converge")
+
+est_eq = root(lambda x: lotka_volterra(math.nan, x, b_model), np.array((-0.1, -0.01)))
+if est_eq.success:
+    print("Equilibrium at {}".format(est_eq.x))
+else:
+    print("Failed to converge")
+
+est_eq = root(lambda x: lotka_volterra(math.nan, x, b_model), np.array((1.1, 0.01)))
+if est_eq.success:
+    print("Equilibrium at {}".format(est_eq.x))
+else:
+    print("Failed to converge")
+# ^FIND EQUILIBRIA^
+
+# # x0_phase_cond=(-1+(41**0.5))/2
+# x0_phase_cond=1
+# x0 = np.array((x0_phase_cond,x0_phase_cond))

@@ -17,7 +17,6 @@ def euler_step(tn, xn, h, fn):
         x -- state at time tn+h
         f -- time derivative at tn+h
     """
-    print("blah",fn(tn, xn))
     x = xn+h*fn(tn, xn)
     return x
 
