@@ -11,3 +11,10 @@ What are the long-term implications of what I've learnt? (When will it be useful
 What would I have done differently if I started the unit over again?
 
 What will I do differently in the future?
+
+
+
+---------- Shooting Implementation -----------
+Done as a function from the start
+Implemented shootinng without a phase condition (didn't converge)
+Then included the phase condition to allow the period to be found
