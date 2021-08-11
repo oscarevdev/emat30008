@@ -28,6 +28,38 @@ def u_exact(x, t):
     return y
 
 
+def pde_initial_condition(space_mesh, initial_cond_distribution, boundary_cond: tuple):
+    assert len(boundary_cond) == 2
+    # Set initial condition
+    u_00 = initial_cond_distribution(space_mesh)
+    u_00[0] = boundary_cond[0]; u_00[-1] = boundary_cond[-1] # boundary conditions
+    return u_00
+
+
+def get_fe_matrix(lam, numsteps_space):
+    # get the Forward Euler iterative timestepping matrix
+    diag1 = list(lmbda*np.ones(numsteps_space))
+    diag2 = list((1-2*lmbda)*np.ones(numsteps_space+1))
+    fe_mat = diags([diag1, diag2, diag1], [-1, 0, 1]).toarray()
+    return fe_mat
+
+
+def finite_diff_fe(sol_ij, numsteps_time, fe_matrix, boundary_cond: tuple):
+    # Solve the PDE: loop over all time points
+    for j in range(0, numsteps_time):
+        # Forward Euler timestep at inner mesh points
+        # PDE discretised at position x[i], time t[j]
+        sol_ij1 = np.dot(fe_matrix, sol_ij)       # sol at next time step
+
+        # Boundary conditions
+        sol_ij1[0] = boundary_cond[0]; sol_ij1[-1] = boundary_cond[-1]
+
+        # Save u_j at time t[j+1]
+        sol_ij[:] = sol_ij1[:]
+
+    return sol_ij
+
+
 # Set numerical parameters
 mx = 10  # number of gridpoints in space
 mt = 1000  # number of gridpoints in time
@@ -43,59 +75,19 @@ print("deltat=", deltat)
 print("lambda=", lmbda)
 
 # Set up the solution variables
-# Set initial condition
-u_j = u_I(x)                  # u at current time step
-u_j[0] = 0; u_j[mx] = 0
-u_jp1 = np.zeros(x.size)      # u at next time step
+u_j = pde_initial_condition(x, u_I, (0, 0))
 
+# get FE method matrix
+A_FE = get_fe_matrix(lmbda, mx)
 
-diag1 = list(lmbda*np.ones(mx))
-diag2 = list((1-2*lmbda)*np.ones(mx+1))
-A_FE = diags([diag1, diag2, diag1], [-1, 0, 1]).toarray()
-print(A_FE)
+# iterate to get t=T
+u_j = finite_diff_fe(u_j, mt, A_FE, (0, 0))
 
-print(u_j)
-
-#
-# def pde_initial_condition(space_mesh, space_numsteps):
-#     u_00 = np.zeros(space_mesh.size)  # u at x=0 and t=0
-#     # Set initial condition
-#     for i in range(0, space_numsteps + 1):
-#         u_00[i] = u_I(space_mesh[i])
-#     return u_00
-#
-#
-# def finite_diff_fe(u_j):
-#     # Solve the PDE: loop over all time points
-#     for j in range(0, mt):
-#         # Forward Euler timestep at inner mesh points
-#         # PDE discretised at position x[i], time t[j]
-#         u_jp1 = np.dot(A_FE, u_j)
-#
-#         # Boundary conditions
-#         u_jp1[0] = 0; u_jp1[mx] = 0
-#
-#         # Save u_j at time t[j+1]
-#         u_j[:] = u_jp1[:]
-#     return u_j
-# Solve the PDE: loop over all time points
-for j in range(0, mt):
-    # Forward Euler timestep at inner mesh points
-    # PDE discretised at position x[i], time t[j]
-    u_jp1 = np.dot(A_FE, u_j)
-
-    # Boundary conditions
-    u_jp1[0] = 0; u_jp1[mx] = 0
-
-    # Save u_j at time t[j+1]
-    u_j[:] = u_jp1[:]
-
-print(u_j)
 # Plot the final result and exact solution
 plt.plot(x, u_j, 'ro', label='num')
 xx = np.linspace(0, L, 250)
 plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
 plt.xlabel('x')
-plt.ylabel('u(x,0.5)')
+plt.ylabel('u(x,'+str(T)+')')
 plt.legend(loc='upper right')
 plt.show()
