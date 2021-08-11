@@ -18,3 +18,8 @@ What will I do differently in the future?
 Done as a function from the start
 Implemented shootinng without a phase condition (didn't converge)
 Then included the phase condition to allow the period to be found
+
+
+---------- Finite Difference Implementation -----------
+11/08/2021 Was trying to do A_FE**mt which was causing massive errors due to the finite precision floating point arithmetic.
+

@@ -63,9 +63,9 @@ for j in range(0, mt):
     u_j[:] = u_jp1[:]
 
 # Plot the final result and exact solution
-pl.plot(x,u_j,'ro',label='num')
-xx = np.linspace(0,L,250)
-pl.plot(xx,u_exact(xx,T),'b-',label='exact')
+pl.plot(x, u_j, 'ro', label='num')
+xx = np.linspace(0, L, 250)
+pl.plot(xx, u_exact(xx, T), 'b-', label='exact')
 pl.xlabel('x')
 pl.ylabel('u(x,0.5)')
 pl.legend(loc='upper right')
