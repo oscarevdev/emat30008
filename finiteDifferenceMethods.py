@@ -17,19 +17,26 @@ L = 1.0  # length of spatial domain
 T = 0.5  # total time to solve for
 
 
-def u_I(x):
+def u_I(space_mesh: np.ndarray):
+    """
+    Input:
+    :param space_mesh:
+
+    Output:
+    :return:
+    """
     # initial temperature distribution
-    y = np.sin(pi * x / L)
+    y = np.sin(pi * space_mesh / L)
     return y
 
 
-def u_exact(x, t):
+def u_exact(space_mesh: np.ndarray, time_mesh: np.ndarray):
     # the exact solution
-    y = np.exp(-kappa * (pi ** 2 / L ** 2) * t) * np.sin(pi * x / L)
+    y = np.exp(-kappa * (pi ** 2 / L ** 2) * time_mesh) * np.sin(pi * space_mesh / L)
     return y
 
 
-def pde_initial_condition(space_mesh, initial_cond_distribution, boundary_cond: tuple):
+def pde_initial_condition(space_mesh: np.ndarray, initial_cond_distribution: callable, boundary_cond: tuple):
     assert len(boundary_cond) == 2
     # Set initial condition
     u_00 = initial_cond_distribution(space_mesh)
@@ -62,13 +69,7 @@ def get_finite_diff_matrix(method_name: str, lam: float, numsteps_space: int):
     return mat
 
 
-def get_be_matrix(lam, numsteps_space):
-    # get the Backward Euler implicit timestepping matrix
-    be_mat = spdiags([diag1, diag2, diag1], [-1, 0, 1], numsteps_space+1, numsteps_space+1)
-    return be_mat
-
-
-def finite_diff(method_name: str, sol_ij, numsteps_time, fd_matrix, fd_matrix2=None, boundary_cond: tuple = (0, 0)):
+def finite_diff(method_name: str, sol_ij: np.ndarray, numsteps_time: int, fd_matrix, fd_matrix2=None, boundary_cond: tuple = (0, 0)):
     sol_ij1 = np.zeros(sol_ij.shape)
     # Solve the PDE: loop over all time points
     for j in range(0, numsteps_time):
@@ -77,9 +78,11 @@ def finite_diff(method_name: str, sol_ij, numsteps_time, fd_matrix, fd_matrix2=N
             # Forward Euler timestep at inner mesh points
             sol_ij1[1:-1] = fd_matrix.dot(sol_ij[1:-1])  # sol at next time step
         elif method_name == 'BE':
+            # Backward Euler implicit timestep at inner mesh points
             sol_ij1[1:-1] = spsolve(fd_matrix, sol_ij[1:-1])
         elif method_name == 'CN':
-            sol_ij1[1:-1] = spsolve(fd_matrix, fd_matrix2.dot(u_j[1:-1]))
+            # Crank-Nicholson implicit timestep at inner mesh points
+            sol_ij1[1:-1] = spsolve(fd_matrix, fd_matrix2.dot(sol_ij[1:-1]))
         else:
             raise NameError("Invalid input: method_name = ['FE', 'BE', 'CN']")
 
@@ -91,13 +94,22 @@ def finite_diff(method_name: str, sol_ij, numsteps_time, fd_matrix, fd_matrix2=N
     return sol_ij
 
 
-def plot_numerical_method(space_mesh, sol, time_value, method_name: str):
-    plt.plot(space_mesh, sol, 'ro', label='num')
-    plt.xlabel('x')
-    plt.ylabel('u(x,'+str(time_value)+')')
-    plt.title(method_name)
-    plt.legend(loc='best')
-    plt.show()
+def run_finite_diff(method_name: str, lam: float, sol_ij: np.ndarray, numsteps_space: int, numsteps_time: int,
+                    boundary_cond: tuple = (0, 0)):
+
+    assert method_name in ['FE', 'BE', 'CN']
+
+    # get the stepping matrix
+    if method_name != 'CN':
+        A_fd = get_finite_diff_matrix(method_name, lam, numsteps_space)
+        B_fd = None
+    else:
+        A_fd, B_fd = get_finite_diff_matrix(method_name, lam, numsteps_space)
+
+    # # iterate to get t=T
+    sol_T = finite_diff(method_name, sol_ij, numsteps_time, A_fd, B_fd, boundary_cond)
+
+    return sol_T
 
 
 # Set numerical parameters
@@ -114,46 +126,21 @@ print("deltax=", deltax)
 print("deltat=", deltat)
 print("lambda=", lmbda)
 
+# Choose the finite difference method from 'FE', 'BE' or 'CN'
+choose_method = 'CN'
+
 # Set up the solution variables
-u_j = pde_initial_condition(x, u_I, (0, 0))
+u_0 = pde_initial_condition(x, u_I, (0, 0))
 
-# # FE METHOD:
-# # get FE method matrix
-# A_FE = get_finite_diff_matrix('FE', lmbda, mx)
-#
-# # iterate to get t=T
-# u_j = finite_diff('FE', u_j, mt, A_FE, (0, 0))
-#
-# # Plot the final result and exact solution
-# xx = np.linspace(0, L, 250)
-# plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
-# plot_numerical_method(x, u_j, T, 'FE Method')
-# # ^FE METHOD^
-
-
-# # BE METHOD:
-# # get BE method matrix
-# A_BE = get_finite_diff_matrix('BE', lmbda, mx)
-#
-# # iterate to get t=T
-# u_j = finite_diff('BE', u_j, mt, A_BE, (0, 0))
-#
-# # Plot the final result and exact solution
-# xx = np.linspace(0, L, 250)
-# plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
-# plot_numerical_method(x, u_j, T, 'BE Method')
-# # ^BE METHOD^
-
-# CN METHOD:
-# get CN method matrices
-A_CN, B_CN = get_finite_diff_matrix('CN', lmbda, mx)
-
-# # iterate to get t=T
-u_j = finite_diff('CN', u_j, mt, A_CN, B_CN, (0, 0))
+# Run the finite difference iterations over time span T
+u_T = run_finite_diff(choose_method, lmbda, u_0, mx, mt, (0, 0))
 
 # Plot the final result and exact solution
 xx = np.linspace(0, L, 250)
 plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
-plot_numerical_method(x, u_j, T, 'CN Method')
-# ^CN METHOD^
-
+plt.plot(x, u_T, 'ro', label='num')
+plt.xlabel('x')
+plt.ylabel('u(x,' + str(T) + ')')
+plt.title(choose_method + ' Method')
+plt.legend(loc='best')
+plt.show()
