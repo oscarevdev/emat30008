@@ -32,3 +32,6 @@ Then included the phase condition to allow the period to be found
 	   Implemented the CN method.
 	   Done as a global functio. Next step to modularise.
 
+	   Modularised the CN method.
+	   Next step to create a function to run the matrix creation and finite_difference iterator depending on the method name.
+

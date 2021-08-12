@@ -68,7 +68,7 @@ def get_be_matrix(lam, numsteps_space):
     return be_mat
 
 
-def finite_diff(method_name: str, sol_ij, numsteps_time, fd_matrix, boundary_cond: tuple):
+def finite_diff(method_name: str, sol_ij, numsteps_time, fd_matrix, fd_matrix2=None, boundary_cond: tuple = (0, 0)):
     sol_ij1 = np.zeros(sol_ij.shape)
     # Solve the PDE: loop over all time points
     for j in range(0, numsteps_time):
@@ -78,6 +78,8 @@ def finite_diff(method_name: str, sol_ij, numsteps_time, fd_matrix, boundary_con
             sol_ij1[1:-1] = fd_matrix.dot(sol_ij[1:-1])  # sol at next time step
         elif method_name == 'BE':
             sol_ij1[1:-1] = spsolve(fd_matrix, sol_ij[1:-1])
+        elif method_name == 'CN':
+            sol_ij1[1:-1] = spsolve(fd_matrix, fd_matrix2.dot(u_j[1:-1]))
         else:
             raise NameError("Invalid input: method_name = ['FE', 'BE', 'CN']")
 
@@ -146,21 +148,8 @@ u_j = pde_initial_condition(x, u_I, (0, 0))
 # get CN method matrices
 A_CN, B_CN = get_finite_diff_matrix('CN', lmbda, mx)
 
-sol_ij1 = np.zeros(u_j.shape)
-# Solve the PDE: loop over all time points
-for j in range(0, mt):
-    # PDE discretised at position x[i], time t[j]
-    sol_ij1[1:-1] = spsolve(A_CN, B_CN.dot(u_j[1:-1]))
-
-    # Boundary conditions
-    sol_ij1[0] = 0
-    sol_ij1[-1] = 0
-
-    # Save u_j at time t[j+1]
-    u_j[:] = sol_ij1[:]
-
 # # iterate to get t=T
-# u_j = finite_diff('BE', u_j, mt, A_BE, (0, 0))
+u_j = finite_diff('CN', u_j, mt, A_CN, B_CN, (0, 0))
 
 # Plot the final result and exact solution
 xx = np.linspace(0, L, 250)
