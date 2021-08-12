@@ -37,7 +37,7 @@ def pde_initial_condition(space_mesh, initial_cond_distribution, boundary_cond: 
     return u_00
 
 
-def get_finite_diff_matrix(method_name: str, lam, numsteps_space):
+def get_finite_diff_matrix(method_name: str, lam: float, numsteps_space: int):
     diag1 = np.ones(numsteps_space - 2)
     diag2 = np.ones(numsteps_space - 1)
     if method_name == 'FE':
@@ -129,15 +129,42 @@ u_j = pde_initial_condition(x, u_I, (0, 0))
 # # ^FE METHOD^
 
 
-# BE METHOD:
-# get BE method matrix
-A_BE = get_finite_diff_matrix('BE', lmbda, mx)
+# # BE METHOD:
+# # get BE method matrix
+# A_BE = get_finite_diff_matrix('BE', lmbda, mx)
+#
+# # iterate to get t=T
+# u_j = finite_diff('BE', u_j, mt, A_BE, (0, 0))
+#
+# # Plot the final result and exact solution
+# xx = np.linspace(0, L, 250)
+# plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
+# plot_numerical_method(x, u_j, T, 'BE Method')
+# # ^BE METHOD^
 
-# iterate to get t=T
-u_j = finite_diff('BE', u_j, mt, A_BE, (0, 0))
+# CN METHOD:
+# get CN method matrices
+A_CN, B_CN = get_finite_diff_matrix('CN', lmbda, mx)
+
+sol_ij1 = np.zeros(u_j.shape)
+# Solve the PDE: loop over all time points
+for j in range(0, mt):
+    # PDE discretised at position x[i], time t[j]
+    sol_ij1[1:-1] = spsolve(A_CN, B_CN.dot(u_j[1:-1]))
+
+    # Boundary conditions
+    sol_ij1[0] = 0
+    sol_ij1[-1] = 0
+
+    # Save u_j at time t[j+1]
+    u_j[:] = sol_ij1[:]
+
+# # iterate to get t=T
+# u_j = finite_diff('BE', u_j, mt, A_BE, (0, 0))
 
 # Plot the final result and exact solution
 xx = np.linspace(0, L, 250)
 plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
-plot_numerical_method(x, u_j, T, 'BE Method')
-# ^BE METHOD^
+plot_numerical_method(x, u_j, T, 'CN Method')
+# ^CN METHOD^
+

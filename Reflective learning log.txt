@@ -29,3 +29,6 @@ Then included the phase condition to allow the period to be found
 	   Will make sure to do that for CN scheme. Already changed the stepping matrix creation function to create the CN matrices. Seems to all work ok but need to be more rigorous with git commits.
 	   Aim is to make each method run just by changing a "method_name" variable from 'FE' to 'BE' or 'CN'.
 
+	   Implemented the CN method.
+	   Done as a global functio. Next step to modularise.
+
