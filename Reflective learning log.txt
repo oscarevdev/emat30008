@@ -22,4 +22,10 @@ Then included the phase condition to allow the period to be found
 
 ---------- Finite Difference Implementation -----------
 11/08/2021 Was trying to do A_FE**mt which was causing massive errors due to the finite precision floating point arithmetic.
+	   Implemented the iterative A_FE multiplication step. Then changed the initial condition assignment from a "for" loop to a vector operation.
+	   Then modularised the code into functions.
+12/08/2021 Implemented the BE method. 
+	   Probably should have done it outside of the FE defined functions then integrated it as would have been good to store that progress in git. 
+	   Will make sure to do that for CN scheme. Already changed the stepping matrix creation function to create the CN matrices. Seems to all work ok but need to be more rigorous with git commits.
+	   Aim is to make each method run just by changing a "method_name" variable from 'FE' to 'BE' or 'CN'.
 

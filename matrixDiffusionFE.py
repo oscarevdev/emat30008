@@ -9,6 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from math import pi
 from scipy.sparse import diags
+from scipy.sparse.linalg import spsolve
 
 # Set problem parameters/functions
 kappa = 1.0  # diffusion constant
@@ -36,28 +37,65 @@ def pde_initial_condition(space_mesh, initial_cond_distribution, boundary_cond: 
     return u_00
 
 
-def get_fe_matrix(lam, numsteps_space):
-    # get the Forward Euler iterative timestepping matrix
-    diag1 = list(lmbda*np.ones(numsteps_space))
-    diag2 = list((1-2*lmbda)*np.ones(numsteps_space+1))
-    fe_mat = diags([diag1, diag2, diag1], [-1, 0, 1]).toarray()
-    return fe_mat
+def get_finite_diff_matrix(method_name: str, lam, numsteps_space):
+    diag1 = np.ones(numsteps_space - 2)
+    diag2 = np.ones(numsteps_space - 1)
+    if method_name == 'FE':
+        # get the Forward Euler iterative timestepping matrix
+        diag1 *= lam
+        diag2 *= (1-2*lam)
+    elif method_name == 'BE':
+        diag1 *= -lam
+        diag2 *= (1+2*lam)
+    elif method_name == 'CN':
+        A_diag1 = -0.5 * lam * diag1
+        A_diag2 = (1 + lam) * diag2
+        A = diags([A_diag1, A_diag2, A_diag1], [-1, 0, 1])
+        B_diag1 = 0.5 * lam * diag1
+        B_diag2 = (1 - lam) * diag2
+        B = diags([B_diag1, B_diag2, B_diag1], [-1, 0, 1])
+        return A, B
+    else:
+        raise NameError("Invalid input: method_name = ['FE', 'BE', 'CN']")
+    # For FE and BE methods:
+    mat = diags([diag1, diag2, diag1], [-1, 0, 1])
+    return mat
 
 
-def finite_diff_fe(sol_ij, numsteps_time, fe_matrix, boundary_cond: tuple):
+def get_be_matrix(lam, numsteps_space):
+    # get the Backward Euler implicit timestepping matrix
+    be_mat = spdiags([diag1, diag2, diag1], [-1, 0, 1], numsteps_space+1, numsteps_space+1)
+    return be_mat
+
+
+def finite_diff(method_name: str, sol_ij, numsteps_time, fd_matrix, boundary_cond: tuple):
+    sol_ij1 = np.zeros(sol_ij.shape)
     # Solve the PDE: loop over all time points
     for j in range(0, numsteps_time):
-        # Forward Euler timestep at inner mesh points
         # PDE discretised at position x[i], time t[j]
-        sol_ij1 = np.dot(fe_matrix, sol_ij)       # sol at next time step
+        if method_name == 'FE':
+            # Forward Euler timestep at inner mesh points
+            sol_ij1[1:-1] = fd_matrix.dot(sol_ij[1:-1])  # sol at next time step
+        elif method_name == 'BE':
+            sol_ij1[1:-1] = spsolve(fd_matrix, sol_ij[1:-1])
+        else:
+            raise NameError("Invalid input: method_name = ['FE', 'BE', 'CN']")
 
         # Boundary conditions
         sol_ij1[0] = boundary_cond[0]; sol_ij1[-1] = boundary_cond[-1]
 
         # Save u_j at time t[j+1]
         sol_ij[:] = sol_ij1[:]
-
     return sol_ij
+
+
+def plot_numerical_method(space_mesh, sol, time_value, method_name: str):
+    plt.plot(space_mesh, sol, 'ro', label='num')
+    plt.xlabel('x')
+    plt.ylabel('u(x,'+str(time_value)+')')
+    plt.title(method_name)
+    plt.legend(loc='best')
+    plt.show()
 
 
 # Set numerical parameters
@@ -77,17 +115,29 @@ print("lambda=", lmbda)
 # Set up the solution variables
 u_j = pde_initial_condition(x, u_I, (0, 0))
 
-# get FE method matrix
-A_FE = get_fe_matrix(lmbda, mx)
+# # FE METHOD:
+# # get FE method matrix
+# A_FE = get_finite_diff_matrix('FE', lmbda, mx)
+#
+# # iterate to get t=T
+# u_j = finite_diff('FE', u_j, mt, A_FE, (0, 0))
+#
+# # Plot the final result and exact solution
+# xx = np.linspace(0, L, 250)
+# plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
+# plot_numerical_method(x, u_j, T, 'FE Method')
+# # ^FE METHOD^
+
+
+# BE METHOD:
+# get BE method matrix
+A_BE = get_finite_diff_matrix('BE', lmbda, mx)
 
 # iterate to get t=T
-u_j = finite_diff_fe(u_j, mt, A_FE, (0, 0))
+u_j = finite_diff('BE', u_j, mt, A_BE, (0, 0))
 
 # Plot the final result and exact solution
-plt.plot(x, u_j, 'ro', label='num')
 xx = np.linspace(0, L, 250)
 plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
-plt.xlabel('x')
-plt.ylabel('u(x,'+str(T)+')')
-plt.legend(loc='upper right')
-plt.show()
+plot_numerical_method(x, u_j, T, 'BE Method')
+# ^BE METHOD^
