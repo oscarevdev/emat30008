@@ -36,4 +36,7 @@ Then included the phase condition to allow the period to be found
 	   Next step to create a function to run the matrix creation and finite_difference iterator depending on the method name.
 
 	   Function created to run the matrix creation and FD iterator. Changed the names of some of the global variables to check there were no global variables called in the functions.
-
+15/08/2021 Adapted the numerical shooting code so that the phase condition can be passed to the shooting function. Previously it was defined as dxdt(0,u0)=0 but now can be input as any function.
+	   Included the internal function G(g_u0_T) within the numerical shooting function to improve readability. Previously there was a lambda function within a lambda function which was quite hard to decipher.
+	   Combined the shooting and finite differences code into one file and documented all of the functions. 
+	   Should have committed the phase condition change in git before implementing the G function however it would not be too hard to unpick the changes from each other/manually revert to the multiple lambda functions.
