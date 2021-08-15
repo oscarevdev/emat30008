@@ -99,6 +99,7 @@ def shooting(u0_tilde: np.ndarray, est_T: float, dudt: callable, dudt_args, phas
             Outputs:
             :return periodic_bvp_sol_eqn9: the periodic boundary value problem as detailed in equation 9
                                                                                         of the Numerical Shooting notes
+
         """
         # internally unpack the start point and period estimates
         g_u0 = g_u0_T[:-1]
@@ -133,7 +134,7 @@ def pde_initial_condition(space_mesh: np.ndarray, initial_cond_distribution: cal
         :param boundary_cond: Boundary conditions at either end of the space distribution (only 1D space dimensions allowed)
 
         Outputs:
-        :return u_00: PDE state space at t=0
+        :return u_00: numpy array of the PDE state space at t=0
     """
     # check that the space dimension is 1D
     assert len(boundary_cond) == 2
@@ -264,46 +265,46 @@ def run_finite_diff(method_name: str, lam: float, sol_j: np.ndarray, numsteps_sp
 
     return sol_T
 
-
-# RUN NUMERICAL SHOOTING CODE
-b_model = 0.2
-x0 = np.array([1, 1])
-
-start_coords, T_lv = shooting(x0, 20.0, lotka_volterra, 0.2, lotka_volterra_dxdt, 0.2)
-print("Limit Cycle Start Coordinates:", start_coords)
-print("Limit Cycle Period:", T_lv)
-
-
-# RUN PDE FINITE DIFFERENCE CODE
-# Set numerical parameters
-mx = 10  # number of gridpoints in space
-mt = 1000  # number of gridpoints in time
-
-# Set up the numerical environment variables
-x = np.linspace(0, L, mx + 1)  # mesh points in space
-t = np.linspace(0, T, mt + 1)  # mesh points in time
-deltax = x[1] - x[0]  # gridspacing in x
-deltat = t[1] - t[0]  # gridspacing in t
-lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
-print("deltax=", deltax)
-print("deltat=", deltat)
-print("lambda=", lmbda)
-
-# Choose the finite difference method from 'FE', 'BE' or 'CN'
-choose_method = 'CN'
-
-# Set up the solution variables
-u_0 = pde_initial_condition(x, u_I, (0, 0))
-
-# Run the finite difference iterations over time span T
-u_T = run_finite_diff(choose_method, lmbda, u_0, mx, mt, (0, 0))
-
-# Plot the final result and exact solution
-xx = np.linspace(0, L, 250)
-plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
-plt.plot(x, u_T, 'ro', label='num')
-plt.xlabel('x')
-plt.ylabel('u(x,' + str(T) + ')')
-plt.title(choose_method + ' Method')
-plt.legend(loc='best')
-plt.show()
+#
+# # RUN NUMERICAL SHOOTING CODE
+# b_model = 0.2
+# x0 = np.array([1, 1])
+#
+# start_coords, T_lv = shooting(x0, 20.0, lotka_volterra, 0.2, lotka_volterra_dxdt, 0.2)
+# print("Limit Cycle Start Coordinates:", start_coords)
+# print("Limit Cycle Period:", T_lv)
+#
+#
+# # RUN PDE FINITE DIFFERENCE CODE
+# # Set numerical parameters
+# mx = 10  # number of gridpoints in space
+# mt = 1000  # number of gridpoints in time
+#
+# # Set up the numerical environment variables
+# x = np.linspace(0, L, mx + 1)  # mesh points in space
+# t = np.linspace(0, T, mt + 1)  # mesh points in time
+# deltax = x[1] - x[0]  # gridspacing in x
+# deltat = t[1] - t[0]  # gridspacing in t
+# lmbda = kappa * deltat / (deltax ** 2)  # mesh fourier number
+# print("deltax=", deltax)
+# print("deltat=", deltat)
+# print("lambda=", lmbda)
+#
+# # Choose the finite difference method from 'FE', 'BE' or 'CN'
+# choose_method = 'CN'
+#
+# # Set up the solution variables
+# u_0 = pde_initial_condition(x, u_I, (0, 0))
+#
+# # Run the finite difference iterations over time span T
+# u_T = run_finite_diff(choose_method, lmbda, u_0, mx, mt, (0, 0))
+#
+# # Plot the final result and exact solution
+# xx = np.linspace(0, L, 250)
+# plt.plot(xx, u_exact(xx, T), 'b-', label='exact')
+# plt.plot(x, u_T, 'ro', label='num')
+# plt.xlabel('x')
+# plt.ylabel('u(x,' + str(T) + ')')
+# plt.title(choose_method + ' Method')
+# plt.legend(loc='best')
+# plt.show()

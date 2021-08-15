@@ -41,3 +41,4 @@ Then included the phase condition to allow the period to be found
 	   Combined the shooting and finite differences code into one file and documented all of the functions. 
 	   Should have committed the phase condition change in git before implementing the G function however it would not be too hard to unpick the changes from each other/manually revert to the multiple lambda functions.
 	   Created README.md in GitHub, pulled to local directory (to try "git pull").
+	   Started developing a unittest Class to test Shooting function.
