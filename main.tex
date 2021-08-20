@@ -1,0 +1,59 @@
+\documentclass[10pt]{article}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+\usepackage{gensymb}
+\usepackage{amsmath}
+\usepackage{multicol}
+
+
+\usepackage[framed,numbered,autolinebreaks,useliterate]{./m-code/mcode}
+\newcommand*\platypus{\textup{\textbf{N.}}\ensuremath{^\circ}}
+
+
+% \usepackage{hyperref}
+% \hypersetup{
+%     colorlinks=true,
+%     linkcolor=black,
+%     filecolor=magenta,      
+%     urlcolor=blue,
+% }
+
+\newcommand\SmallMatrix[1]{{%
+  \tiny\arraycolsep=0.3\arraycolsep\ensuremath{\begin{pmatrix}#1\end{pmatrix}}}}
+\newcommand{\treesize}{0.3}
+
+\usepackage{biblatex}
+\addbibresource{project.bib}
+
+
+\title{Scientific Computing Summer Project}
+\author{Oscar Evans}
+\date{\today}
+\begin{document}
+\maketitle
+
+\begin{multicols}{2}
+
+\section{Software Summary}
+30\% of Marks
+
+
+
+\section{Software Design Decisions}
+40\% of Marks
+
+\section{Reflective Learning Log}
+30\% of Marks
+
+
+
+\end{multicols}
+
+
+\printbibliography 
+
+
+\end{document}
