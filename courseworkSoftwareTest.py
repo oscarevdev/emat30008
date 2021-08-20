@@ -28,7 +28,7 @@ def hopf_normal_form_exact(t, beta):
 
 
 class ShootingTest(unittest.TestCase):
-    def hopf_test1(self):
+    def test_hopf_test1(self):
         u0 = np.array([1,1])
         est_T = 10
         beta = 0.5
@@ -42,10 +42,12 @@ class ShootingTest(unittest.TestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(ShootingTest('hopf_test1'))
+    suite.addTest(ShootingTest('test_hopf_test1'))
     return suite
 
 
 if __name__ == '__main__':
-    runner = unittest.TextTestRunner()
-    runner.run(suite())
+    unittest.main()
+# if __name__ == '__main__':
+#     runner = unittest.TextTestRunner()
+#     runner.run(suite())
