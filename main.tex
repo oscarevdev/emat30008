@@ -38,16 +38,73 @@
 \begin{multicols}{2}
 
 \section{Software Summary}
-30\% of Marks
+% 30\% of Marks
+The numerical methods software comprises of two key methods: numerical shooting for finding ODE limit cycles and the finite difference method for solving PDEs in the time and space dimensions.
+
+\subsection{Numerical Shooting}
+The shooting code takes ODEs in first order form with an estimation of a point on the limit cycle and period, a phase condition to allow the period to be determined and argument values for constants in the ODE. The function uses numerical shooting to get a true value for a point on the limit cycle and its period. 
 
 
+
+\subsection{Finite Differences}
+The Finite Differences implementation is made up of three functions: one to create the iterative timestepping matrix or matrices, one to perform the timestepping for a given method and then a final function to setup and solve the system using the previous two functions.
+
+The timestepping matrix creation function takes in a string to indicate which method to create the matrix for, a lambda value used to weight the matrices and the number of values in the time dimension to give the size of the matrices. Then a square tridiagonal matrix of size one less than the number of values in the space dimension is returned. 
+
+The iterative timestepping code takes the method name to determine how to solve the problem. The initial conditions are input as a starting point for the iteration. The number of iterations is determined by the desired number of timesteps, finally, the boundary conditions and iteration matrices are input to determine the solution at each step. Depending on the method name the solution is then found by solving implicit or explicit matrix problem. 
+
+Last of all, the function to run the full method  takes all the input requirements for the matrix creation and input values for timestepping (except the matrix values) and outputs the solution at the end of the time interval.
 
 \section{Software Design Decisions}
-40\% of Marks
+% 40\% of Marks
+\subsection{Numerical Shooting}
+
+The shooting function is takes the following inputs:
+\begin{itemize}
+    \item \mcode{u0_tilde} - estimated limit cycle coordinates.
+    \item \mcode{est_T} - estimated limit cycle period.
+    \item \mcode{dudt} - query ODE in first order form.
+    \item \mcode{dudt_args} - arguments for the ODE.
+    \item \mcode{phase_condition} - expression for the phase condition of the periodic boundary value problem. 
+    \item \mcode{pc_args} - arguments for the phase condition expression.
+\end{itemize}
+
+The key design decision was to implement the phase condition as an input for the function. Initially I developed the function with a default phase condition of the first dimension of the ODE equalling zero then decided to require it as an input. There phase condition input improves the flexibility and robustness of the code but at the cost of a simpler interface. However, I decided that it was more important for the code to be robust for a suitable phase condition even if it requires one more function definition for the user.
+
+Another important design decision was to define the periodic boundary value problem as an internal function rather than as a lambda function. A lambda function is designed for small, inline function calls to create concise code. Defining the boundary value problem in a function has the same functionality as a lambda function but is far more readable in the context of this code. This is because the numerical solver uses a lambda function to find the root of the shooting problem. If the periodic boundary value problem was defined inline then there would be a lambda function within a lambda function which would not be easy to read and therefore the shooting function would be harder to understand as a whole.
+
+
+\subsection{Finite Differences}
+
+
 
 \section{Reflective Learning Log}
-30\% of Marks
+% 30\% of Marks
 
+% Key questions you should try to answer in your learning log are as follows.
+
+% What did I learn about the mathematical algorithms? I.e., solving boundary value problems, numerical ill-conditioning, etc.
+
+% What did I learn about software engineering? How have I progressed in my abilities?
+
+% What are the short-term implications of what I've learnt? (When will it be useful?)
+
+% What are the long-term implications of what I've learnt? (When will it be useful?)
+
+\subsection{Numerical Shooting}
+
+
+
+\subsection{Finite Differences}
+
+
+
+\subsection{Conclusion/Remarks}
+% What would I have done differently if I started the unit over again?
+
+% What will I do differently in the future?
+Should not have committed the other files in git used for developing the software.
+Should have developed the software in one file for a continuous git flow.
 
 
 \end{multicols}
