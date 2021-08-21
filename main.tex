@@ -38,22 +38,108 @@
 \begin{multicols}{2}
 
 \section{Software Summary}
-30\% of Marks
+% 30\% of Marks
+The numerical methods software comprises of two key methods: numerical shooting for finding ODE limit cycles and the finite difference method for solving PDEs in the time and space dimensions.
+
+\subsection{Numerical Shooting}
+The shooting code takes ODEs in first order form with an estimation of a point on the limit cycle and period, a phase condition to allow the period to be determined and argument values for constants in the ODE. The function uses numerical shooting to get a true value for a point on the limit cycle and its period. 
 
 
+
+\subsection{Finite Differences}
+The Finite Differences implementation is made up of three functions: one to create the iterative timestepping matrix or matrices, one to perform the timestepping for a given method and then a final function to setup and solve the system using the previous two functions.
+
+The timestepping matrix creation function takes in a string to indicate which method to create the matrix for, a lambda value used to weight the matrices and the number of values in the time dimension to give the size of the matrices. Then a square tridiagonal matrix of size one less than the number of values in the space dimension is returned. 
+
+The iterative timestepping code takes the method name to determine how to solve the problem. The initial conditions are input as a starting point for the iteration. The number of iterations is determined by the desired number of timesteps, finally, the boundary conditions and iteration matrices are input to determine the solution at each step. Depending on the method name the solution is then found by solving implicit or explicit matrix problem. 
+
+Last of all, the function to run the full method  takes all the input requirements for the matrix creation and input values for timestepping (except the matrix values). It creates the timestepping matrices, performs the iteration and outputs the solution at the end of the time interval.
 
 \section{Software Design Decisions}
-40\% of Marks
+% 40\% of Marks
+\subsection{Numerical Shooting}
+
+The shooting function is takes the following inputs:
+\begin{itemize}
+    \item \mcode{u0_tilde} - estimated limit cycle coordinates.
+    \item \mcode{est_T} - estimated limit cycle period.
+    \item \mcode{dudt} - query ODE in first order form.
+    \item \mcode{dudt_args} - arguments for the ODE.
+    \item \mcode{phase_condition} - expression for the phase condition of the periodic boundary value problem. 
+    \item \mcode{pc_args} - arguments for the phase condition expression.
+\end{itemize}
+
+The key design decision was to implement the phase condition as an input for the function. Initially I developed the function with a default phase condition of the first dimension of the ODE equalling zero then decided to require it as an input. There phase condition input improves the flexibility and robustness of the code but at the cost of a simpler interface. However, I decided that it was more important for the code to be robust for a suitable phase condition even if it requires one more function definition for the user.
+
+Another important design decision was to define the periodic boundary value problem as an internal function rather than as a lambda function. A lambda function is designed for small, inline function calls to create concise code. Defining the boundary value problem in a function has the same functionality as a lambda function but is far more readable in the context of this code. This is because the numerical solver uses a lambda function to find the root of the shooting problem. If the periodic boundary value problem was defined inline then there would be a lambda function within a lambda function which would not be easy to read and therefore the shooting function would be harder to understand as a whole.
+
+
+\subsection{Finite Differences}
+The feature that drove the design of the finite differences method was the ability to pass the initials of the desired method as an input and and the software perform this version of the finite differences method. The key benefit of this is that the user can implement each of the Forward Euler, Backward Euler or Crank-Nicholson methods simply by changing this string. This makes the code easier to use and allows the results of each method to be easily compared.
+
+This ease of changing between the methods is complemented by the ability to condense common steps present in all the methods to follow the do not repeat yourself coding principle. For example, the timestepping matrix shape is the same for all three methods and so the three diagonals' length are determined using the number of values in the space dimension before being weighted for the specific method by the relevant lambda value. While the timestepping equation is dependent on the method, the boundary conditions being present at either end of the space domain is true for all methods so this assignment is done for all method types. Finally, when running the finite differences method any of the schemes can be run by the two functions perfoming the matrix creation and timestepping. This is because of the of the consistent output format of the matrix creation code.
+
+
+
+
+
 
 \section{Reflective Learning Log}
-30\% of Marks
+% 30\% of Marks
 
+% Key questions you should try to answer in your learning log are as follows.
+
+% What did I learn about the mathematical algorithms? I.e., solving boundary value problems, numerical ill-conditioning, etc.
+
+% What did I learn about software engineering? How have I progressed in my abilities?
+
+% What are the short-term implications of what I've learnt? (When will it be useful?)
+
+% What are the long-term implications of what I've learnt? (When will it be useful?)
+
+\subsection{Numerical Shooting}
+From the beginning I created the shooting method as a function rather than first doing it as a global script. This did not cause me any problems since the shooting method can be contained within one function. 
+
+Initially, I used a fixed period to try find the limit cycle coordinate but found that this did not converge. I didn't fully understand the purpose of the phase condition or the root solver and initial value problem function combination. After doing some reading I understood the need of the phase condition and as a result: why my system was not converging. Therefore, I changed the period to a variable and set the phase condition as $\frac{dx}{dt}=0$ to solve the transiency issue. This ensured the boundary value problem was fully determined and so the limit cycle could be found.
+
+Refining this function to consider ease of use and comprehension was the first time I have had to consider user interaction with my code. Especially as I focused on implementing the finite differences method before polishing the shooting function. When I returned to it, it was very difficult to understand the nested lambda functions performing the shooting in one line which is why I chose to define the boundary value problem as a separate function. This highlighted the importance of good documentation and comments as well as the balance between concision and readability.  
+
+LONG/SHORT TERM TAKEAWAYS?
+
+
+\subsection{Finite Differences}
+I grasped the concept of the finite differences method from the provided code implementing the Forward Euler method iterating both the time and space domains. I used this code as a starting point and changed the space iteration to a matrix equation as non-modular code.
+
+The matrix implementation was not giving the same output as the iterative method because I had replaced the time iteration with a multiplicative power for the system matrix. Floating points in python have a precision of 16 digits. The timestepping matrix contains values between zero and a half for a stable forward euler implementation. For many timesteps, or a large matrix power, the numerical error of these decimals to a large power matrix grew massively to the point that the rounding error caused the method to fail. Therefore I re-inserted the time domain iteration to avoid this numerical error as there are no inherent floating point values smaller that $10^{-16}$. 
+
+Then I modularised the Forward Euler with matrix diffusion into a matrix creation and timestepping function. When I implemented the Backward Euler method, I inserted it as an option within the Forward Euler functions without implementing it as a global script. This is because I already had a plan as to how I would structure my final software for the finite differences. It would have been better practice to implement the method outside of the Forward Euler functions to check the method worked independently and would not break the existing functions. However, the method worked and did not create any issues.
+
+I did learn from this process and adapted the Crank-Nicholson method separately before including it in the same functions as the Forwards and Backwards Euler methods. This was important because the Crank-Nicholson method requires two matrices for timestepping which would have increased the risk of breaking the existing functions. It also forced me to find the best way to create the matrices for each method by exploiting the common qualities of the methods.
+
+Once the matrix creation and timestepping functions worked for the three methods, I developed a further function to run these in sequence, providing a single finite differences function for the user. This makes the PDE numerically solvable with one function. Combined with the ability to change methods simply by changing a string at the start of the function, this creates a clean and easy to use interface for the user to solve PDEs using a range of methods.
+
+
+
+\subsection{Git Usage and Version Control}
+
+I completed the first three weeks of the course syllabus to get familiar with git and the inbuilt numerical methods within Python. Due to a limited amount of time to complete the project I prioritised the key points of the assessment, namely the  
+
+I was rigorous with regularly committing my updates in git, the commit messages were massively helpful with writing the report.  
+
+
+\subsection{Conclusion/Remarks}
+% What would I have done differently if I started the unit over again?
+
+% What will I do differently in the future?
+Less than three weeks to complete!!!!!!
+
+Should not have committed the other files in git used for developing the software.
+Should have developed the software in one file for a continuous git flow.
 
 
 \end{multicols}
 
 
 \printbibliography 
-
 
 \end{document}
