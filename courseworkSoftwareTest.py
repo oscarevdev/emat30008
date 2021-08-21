@@ -1,8 +1,5 @@
 import unittest
 import numpy as np
-from math import sqrt
-from math import sin
-from math import cos
 from courseworkSoftware import shooting
 from phaseportraits_initial import morris_lecar
 

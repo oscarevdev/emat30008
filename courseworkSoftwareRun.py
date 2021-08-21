@@ -8,22 +8,19 @@ from courseworkSoftware import run_finite_diff
 from courseworkSoftware import u_I, u_exact
 from courseworkSoftware import hopf_normal_form, hopf_normal_form_du1dt, hopf_normal_form_exact
 
-
 # RUN NUMERICAL SHOOTING CODE
-b_model = 0.2
-x0 = np.array([1, 1])
-
 # Lotka-Volterra Equations
-print("Lotka Volterra")
-start_coords, T_lv = shooting(x0, 20.0, lotka_volterra, 0.2, lotka_volterra_dxdt, 0.2)
-print("Limit Cycle Start Coordinates:", start_coords)
-print("Limit Cycle Period:", T_lv)
+start_coords, T_lv = shooting(np.array([1,1]), 20.0, lotka_volterra, 0.2, lotka_volterra_dxdt, 0.2)
+print("Lotka-Volterra Limit Cycle Start Coordinates:", start_coords)
+print("Lotka-Volterra Period:", T_lv)
 
 # Hopf Bifurcation
-print("Hopf Bifurcation")
-start_coords, T_hopf = shooting(np.array([1,0]), pi, hopf_normal_form, 4, hopf_normal_form_du1dt, 4)
-print("Limit Cycle Start Coordinates:", start_coords)
-print("Limit Cycle Period:", T_hopf)
+start_coords, T_hopf = shooting(np.array([1.4,1.5]), 6.0, hopf_normal_form, 4.0, hopf_normal_form_du1dt, 4.0)
+print("Hopf Limit Cycle Start Coordinates:", start_coords)
+print("Hopf Period:", T_hopf)
+print("Hopf Exact at t=0:", hopf_normal_form_exact(0, 4, 2*pi))
+print("Hopf Exact at t=2*pi:", hopf_normal_form_exact(0, 4, 2*pi))
+
 
 # HEAT EQUATION PDE PROBLEM DEFINITION
 # simple forward Euler solver for the 1D heat equation

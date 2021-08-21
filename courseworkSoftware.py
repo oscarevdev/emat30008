@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from math import pi
+from math import pi, sqrt, sin, cos
 from scipy.integrate import solve_ivp
 from scipy.optimize import root
 from scipy.sparse import diags
@@ -72,11 +72,11 @@ def hopf_normal_form_du1dt(t, u, beta):
     return hopf_normal_form(t, u, beta)[0]
 
 
-def hopf_normal_form_exact(t, beta):
+def hopf_normal_form_exact(t, beta, theta):
     """Hopf bifurcation normal form exact solution"""
     # complete a single limit cycle oscillation of the hopf normal form
-    u1 = sqrt(beta)*cos(t)
-    u2 = sqrt(beta)*sin(t)
+    u1 = sqrt(beta)*cos(t + theta)
+    u2 = sqrt(beta)*sin(t + theta)
     return np.array([u1, u2])
 
 
