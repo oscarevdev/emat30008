@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 from courseworkSoftware import shooting
 from phaseportraits_initial import morris_lecar
+from courseworkSoftware import hopf_normal_form, hopf_normal_form_du1dt, hopf_normal_form_exact
 
 
 class ShootingTest(unittest.TestCase):

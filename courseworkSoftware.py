@@ -180,25 +180,28 @@ def get_finite_diff_matrix(method_name: str, lam: float, numsteps_space: int):
         # get the Forward Euler iterative timestepping matrix
         diag1 *= lam
         diag2 *= (1-2*lam)
-        A = diags([diag1, diag2, diag1], [-1, 0, 1])
+        A = diags([diag1, diag2, diag1], [-1, 0, 1]).tocsc()
         B = None
+        # FE method only stable when 0 < lambda < 0.5
+        if lam >= 0.5:
+            print("WARNING: lambda > 0.5. Forward Euler conditional stability not fulfilled. Lambda =", lam)
     elif method_name == 'BE':
         # get the Backward Euler iterative timestepping matrix
         diag1 *= -lam
         diag2 *= (1+2*lam)
-        A = diags([diag1, diag2, diag1], [-1, 0, 1])
+        A = diags([diag1, diag2, diag1], [-1, 0, 1]).tocsc()
         B = None
     elif method_name == 'CN':
         # get the Crank-Nicholson iterative timestepping matrices
         A_diag1 = -0.5 * lam * diag1
         A_diag2 = (1 + lam) * diag2
-        A = diags([A_diag1, A_diag2, A_diag1], [-1, 0, 1])
+        A = diags([A_diag1, A_diag2, A_diag1], [-1, 0, 1]).tocsc()
         B_diag1 = 0.5 * lam * diag1
         B_diag2 = (1 - lam) * diag2
-        B = diags([B_diag1, B_diag2, B_diag1], [-1, 0, 1])
+        B = diags([B_diag1, B_diag2, B_diag1], [-1, 0, 1]).tocsc()
     else:
         raise NameError("Invalid input: method_name = ['FE', 'BE', 'CN']")
-    return A.tocsc(), B.tocsc()
+    return A, B
 
 
 def finite_diff(method_name: str, sol_j: np.ndarray, numsteps_time: int, boundary_cond: tuple, fd_matrix, fd_matrix2=None):
