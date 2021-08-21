@@ -11,15 +11,17 @@ from courseworkSoftware import hopf_normal_form, hopf_normal_form_du1dt, hopf_no
 # RUN NUMERICAL SHOOTING CODE
 # Lotka-Volterra Equations
 start_coords, T_lv = shooting(np.array([1,1]), 20.0, lotka_volterra, 0.2, lotka_volterra_dxdt, 0.2)
-print("Lotka-Volterra Limit Cycle Start Coordinates:", start_coords)
+print("Lotka-Volterra Limit Cycle Coordinates:", start_coords)
 print("Lotka-Volterra Period:", T_lv)
 
 # Hopf Bifurcation
-start_coords, T_hopf = shooting(np.array([1.4,1.5]), 6.0, hopf_normal_form, 4.0, hopf_normal_form_du1dt, 4.0)
-print("Hopf Limit Cycle Start Coordinates:", start_coords)
+beta = 4.0
+start_coords, T_hopf = shooting(np.array([1.4,1.5]), 6.0, hopf_normal_form, beta, hopf_normal_form_du1dt, beta)
+print("\nHopf Limit Cycle Coordinates:", start_coords)
 print("Hopf Period:", T_hopf)
-print("Hopf Exact at t=0:", hopf_normal_form_exact(0, 4, 2*pi))
-print("Hopf Exact at t=2*pi:", hopf_normal_form_exact(0, 4, 2*pi))
+hopf_exact_args = (beta, 2*pi)
+print("Hopf Exact at t=0:", hopf_normal_form_exact(0, *hopf_exact_args))
+print("Hopf Exact at t=2*pi:", hopf_normal_form_exact(T_hopf, *hopf_exact_args), "\n")
 
 
 # HEAT EQUATION PDE PROBLEM DEFINITION

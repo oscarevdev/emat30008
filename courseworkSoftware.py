@@ -81,7 +81,7 @@ def hopf_normal_form_exact(t, beta, theta):
 
 
 # ODE Numerical Shooting
-def shooting(u0_tilde: np.ndarray, est_T: float, dudt: callable, dudt_args, phase_condition: callable, pc_args):
+def shooting(u0_tilde: np.ndarray, est_T: float, dudt: callable, dudt_arg: float, phase_condition: callable, pc_arg: float):
     """
         Use SciPy's internal ODE solver and root finder to estimate a point on an ODE's limit cycle and its period.
 
@@ -89,10 +89,10 @@ def shooting(u0_tilde: np.ndarray, est_T: float, dudt: callable, dudt_args, phas
         :param u0_tilde: starting point for shooting (should be near limit cycle)
         :param est_T: estimated period
         :param dudt: ordinary differential equation in first order form, parameters: (t, u, arguments)
-        :param dudt_args: argument values for dudt
+        :param dudt_arg: single float argument value for dudt
         :param phase_condition: callable function with single float output to allow the period to be calculated,
                                                                                           parameters: (t, u, arguments)
-        :param pc_args: argument values for phase_condition
+        :param pc_arg: single float argument value for dudt
 
         Outputs:
         :return: u_lim: point on limit cycle
@@ -118,9 +118,9 @@ def shooting(u0_tilde: np.ndarray, est_T: float, dudt: callable, dudt_args, phas
         g_u0 = g_u0_T[:-1]
         g_T = g_u0_T[-1]
         # create the function G(u0,T) as detailed in equation 6 of the Numerical Shooting notes
-        periodic_bvp_sol = g_u0 - solve_ivp(lambda t, u: dudt(t, u, dudt_args), (0, g_T), g_u0).y[:, -1]
+        periodic_bvp_sol = g_u0 - solve_ivp(lambda t, u: dudt(t, u, dudt_arg), (0, g_T), g_u0).y[:, -1]
         # add the phase condition to get G(u0,T) as detailed in equation 9 of the Numerical Shooting notes
-        periodic_bvp_sol_eqn9 = np.append(periodic_bvp_sol, phase_condition(0, g_u0, pc_args))
+        periodic_bvp_sol_eqn9 = np.append(periodic_bvp_sol, phase_condition(0, g_u0, pc_arg))
         return periodic_bvp_sol_eqn9
 
     # create the concatenated start point and period estimations
