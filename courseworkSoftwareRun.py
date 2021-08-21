@@ -1,19 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from math import pi
 from courseworkSoftware import shooting
 from courseworkSoftware import lotka_volterra, lotka_volterra_dxdt
 from courseworkSoftware import pde_initial_condition
 from courseworkSoftware import run_finite_diff
 from courseworkSoftware import u_I, u_exact
+from courseworkSoftware import hopf_normal_form, hopf_normal_form_du1dt, hopf_normal_form_exact
 
 
 # RUN NUMERICAL SHOOTING CODE
 b_model = 0.2
 x0 = np.array([1, 1])
 
+# Lotka-Volterra Equations
+print("Lotka Volterra")
 start_coords, T_lv = shooting(x0, 20.0, lotka_volterra, 0.2, lotka_volterra_dxdt, 0.2)
 print("Limit Cycle Start Coordinates:", start_coords)
 print("Limit Cycle Period:", T_lv)
+
+# Hopf Bifurcation
+print("Hopf Bifurcation")
+start_coords, T_hopf = shooting(np.array([1,0]), pi, hopf_normal_form, 4, hopf_normal_form_du1dt, 4)
+print("Limit Cycle Start Coordinates:", start_coords)
+print("Limit Cycle Period:", T_hopf)
 
 # HEAT EQUATION PDE PROBLEM DEFINITION
 # simple forward Euler solver for the 1D heat equation
@@ -49,12 +59,12 @@ choose_method = 'CN'
 # Set up the solution variables
 u_0 = pde_initial_condition(x, u_I, (0, 0), L)
 
-print(u_0)
-
 # Run the finite difference iterations over time span T
 u_T = run_finite_diff(choose_method, lmbda, u_0, mx, mt, (0, 0))
 
 # Plot the final result and exact solution
+print("Finite Differences Error:", np.sum((u_exact(np.linspace(0, L, len(u_T)), T, kappa, L)-u_T)**2))
+
 xx = np.linspace(0, L, 250)
 plt.plot(xx, u_exact(xx, T, kappa, L), 'b-', label='exact')
 plt.plot(x, u_T, 'ro', label='num')

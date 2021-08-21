@@ -23,13 +23,13 @@ def u_I(space_mesh: np.ndarray, space_span: float):
     return np.sin(pi * space_mesh / space_span)
 
 
-def u_exact(space_mesh: np.ndarray, time_mesh: np.ndarray, diffusion_constant: float, space_span: float):
+def u_exact(space_mesh: np.ndarray, current_time: float, diffusion_constant: float, space_span: float):
     """
         Calculate the exact solution of the 1D heat equation PDE:
                                   u_t = kappa u_xx  0<x<L, 0<t<T
         Input:
         :param space_mesh: space dimension of the PDE
-        :param time_mesh: time dimension of the PDE
+        :param current_time: time at which to solve PDE
         :param diffusion_constant: heat equation diffusion constant
         :param space_span: Length of the spacial domain
 
@@ -37,7 +37,7 @@ def u_exact(space_mesh: np.ndarray, time_mesh: np.ndarray, diffusion_constant: f
         :return: Exact solution of the heat equation PDE
     """
     # the exact solution
-    y = np.exp(-diffusion_constant * (pi ** 2 / space_span ** 2) * time_mesh) * np.sin(pi * space_mesh / space_span)
+    y = np.exp(-diffusion_constant * (pi ** 2 / space_span ** 2) * current_time) * np.sin(pi * space_mesh / space_span)
     return y
 
 
@@ -55,6 +55,29 @@ def lotka_volterra(t, x_vec, b):
 def lotka_volterra_dxdt(t, x_vec, b):
     """First dimension of the Lotka-Volterra ODE equation"""
     return lotka_volterra(t, x_vec, b)[0]
+
+
+def hopf_normal_form(t, u, beta):
+    """Hopf bifurcation normal form ODE equation"""
+    sigma = -1
+    u1 = u[0]
+    u2 = u[1]
+    du1dt = beta*u1 - u2 + sigma*u1*(u1**2 + u2**2)
+    du2dt = u1 + beta*u2 + sigma*u2*(u1**2 + u2**2)
+    return np.array((du1dt, du2dt))
+
+
+def hopf_normal_form_du1dt(t, u, beta):
+    """First dimension of the Hopf bifurcation normal form ODE equation"""
+    return hopf_normal_form(t, u, beta)[0]
+
+
+def hopf_normal_form_exact(t, beta):
+    """Hopf bifurcation normal form exact solution"""
+    # complete a single limit cycle oscillation of the hopf normal form
+    u1 = sqrt(beta)*cos(t)
+    u2 = sqrt(beta)*sin(t)
+    return np.array([u1, u2])
 
 
 # ODE Numerical Shooting
@@ -107,7 +130,6 @@ def shooting(u0_tilde: np.ndarray, est_T: float, dudt: callable, dudt_args, phas
     limit_cycle_vals = root(lambda u0_T: periodic_bvp(u0_T), initial_guess)
 
     # print the root finding results and return the solutions
-    print(limit_cycle_vals)
     u_lim = limit_cycle_vals.x[:-1]
     period = limit_cycle_vals.x[-1]
     return u_lim, period
@@ -176,7 +198,7 @@ def get_finite_diff_matrix(method_name: str, lam: float, numsteps_space: int):
         B = diags([B_diag1, B_diag2, B_diag1], [-1, 0, 1])
     else:
         raise NameError("Invalid input: method_name = ['FE', 'BE', 'CN']")
-    return A, B
+    return A.tocsc(), B.tocsc()
 
 
 def finite_diff(method_name: str, sol_j: np.ndarray, numsteps_time: int, boundary_cond: tuple, fd_matrix, fd_matrix2=None):

@@ -42,3 +42,8 @@ Then included the phase condition to allow the period to be found
 	   Should have committed the phase condition change in git before implementing the G function however it would not be too hard to unpick the changes from each other/manually revert to the multiple lambda functions.
 	   Created README.md in GitHub, pulled to local directory (to try "git pull").
 	   Started developing a unittest Class to test Shooting function.
+21/08/2021 Get FE and BE methods to define matrix B as "None" and then have a single return for the matrix creation function. 
+	   Allows the run_finite_differences to avoid an if loop as the method_name variable means that B can be input as None for the FE and BE methods.
+	   
+	   Moved the Hopf bifurcation normal form into the software package.
+	   Increasing the number of demonstrations in the courseworkSoftwareRun file to include Hopf bifurcation.
