@@ -49,6 +49,8 @@ choose_method = 'CN'
 # Set up the solution variables
 u_0 = pde_initial_condition(x, u_I, (0, 0), L)
 
+print(u_0)
+
 # Run the finite difference iterations over time span T
 u_T = run_finite_diff(choose_method, lmbda, u_0, mx, mt, (0, 0))
 

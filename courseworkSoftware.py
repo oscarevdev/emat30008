@@ -158,10 +158,14 @@ def get_finite_diff_matrix(method_name: str, lam: float, numsteps_space: int):
         # get the Forward Euler iterative timestepping matrix
         diag1 *= lam
         diag2 *= (1-2*lam)
+        A = diags([diag1, diag2, diag1], [-1, 0, 1])
+        B = None
     elif method_name == 'BE':
         # get the Backward Euler iterative timestepping matrix
         diag1 *= -lam
         diag2 *= (1+2*lam)
+        A = diags([diag1, diag2, diag1], [-1, 0, 1])
+        B = None
     elif method_name == 'CN':
         # get the Crank-Nicholson iterative timestepping matrices
         A_diag1 = -0.5 * lam * diag1
@@ -170,12 +174,9 @@ def get_finite_diff_matrix(method_name: str, lam: float, numsteps_space: int):
         B_diag1 = 0.5 * lam * diag1
         B_diag2 = (1 - lam) * diag2
         B = diags([B_diag1, B_diag2, B_diag1], [-1, 0, 1])
-        return A, B
     else:
         raise NameError("Invalid input: method_name = ['FE', 'BE', 'CN']")
-    # For FE and BE methods:
-    mat = diags([diag1, diag2, diag1], [-1, 0, 1])
-    return mat
+    return A, B
 
 
 def finite_diff(method_name: str, sol_j: np.ndarray, numsteps_time: int, boundary_cond: tuple, fd_matrix, fd_matrix2=None):
@@ -245,11 +246,7 @@ def run_finite_diff(method_name: str, lam: float, sol_j: np.ndarray, numsteps_sp
     """
     assert method_name in ['FE', 'BE', 'CN']
     # get the timestepping matrix
-    if method_name != 'CN':
-        A_fd = get_finite_diff_matrix(method_name, lam, numsteps_space)
-        B_fd = None
-    else:
-        A_fd, B_fd = get_finite_diff_matrix(method_name, lam, numsteps_space)
+    A_fd, B_fd = get_finite_diff_matrix(method_name, lam, numsteps_space)
 
     # # iterate to get t=T
     sol_T = finite_diff(method_name, sol_j, numsteps_time, boundary_cond, A_fd, B_fd)
