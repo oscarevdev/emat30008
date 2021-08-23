@@ -1,11 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from math import pi, sqrt, sin, cos
 from scipy.integrate import solve_ivp
 from scipy.optimize import root
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
-import time
 
 
 # ODE/PDE Systems
